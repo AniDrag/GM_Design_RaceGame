@@ -64,7 +64,7 @@ public class CarControl : CommunicationBridge
         float hInput = Input.GetAxis("Horizontal"); // Steering input
 
         // Calculate current speed along the car's forward axis
-        float forwardSpeed = Vector3.Dot(transform.forward, rigidBody.linearVelocity);
+        float forwardSpeed = ForwardSpeed();
         float speedFactor = Mathf.InverseLerp(0, currentMaxSpeed, Mathf.Abs(forwardSpeed)); // Normalized speed factor
 
         // Reduce motor torque and steering at high speeds for better handling
@@ -115,5 +115,11 @@ public class CarControl : CommunicationBridge
         }
 
         holdingShift = false;
+    }
+
+    // Use this to get the forward speed of the car
+    public float ForwardSpeed()
+    {
+        return Vector3.Dot(transform.forward, rigidBody.linearVelocity);
     }
 }
