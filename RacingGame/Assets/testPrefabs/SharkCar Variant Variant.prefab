@@ -863,7 +863,7 @@ MonoBehaviour:
   Reliability: 2
   UseGlobalPosition: 0
   OnlySyncFromRoomOwner: 0
-  refreshRate: 30
+  refreshRate: 120
   SyncedAxes: 63
 --- !u!114 &6463169740669427624
 MonoBehaviour:
