@@ -5,8 +5,8 @@ public class Camera : MonoBehaviour
     [Header("References")]
     [SerializeField]
     private Transform player;  // Reference to the player to follow
-
-    public Rigidbody carRigidBody;
+    [SerializeField]
+    private Rigidbody carRigidBody;
 
     [Header("Camera Settings")]
     [SerializeField]
@@ -33,11 +33,11 @@ public class Camera : MonoBehaviour
     private float maxXAngle = 60f;
 
     [SerializeField]
-    private float minFollowSpeed = .1f;
+    private float minFollowSpeed = 2;
     [SerializeField]
-    private float maxFollowSpeed = 5f;
+    private float maxFollowSpeed = 3;
     [SerializeField]
-    private float maxCarSpeed;
+    private float maxCarSpeed = 10;
     [SerializeField]
     private LayerMask collisionLayer; // LayerMask for objects that block the camera !USE IF NEEDED!
 
@@ -46,10 +46,24 @@ public class Camera : MonoBehaviour
     private float currentY = 0f;  // Current vertical rotation
 
     private Vector3 lastKnownForward;
+    private Transform mainCamera;
+
+    private Alteruna.Avatar avatar;
 
 
     void Start()
     {
+        avatar = GetComponent<Alteruna.Avatar>();
+        if (!avatar.IsMe)
+            return;
+        if (!folowMe.IHaveATarget)
+        {
+            carRigidBody = GetComponent<Rigidbody>();
+            player = gameObject.transform.Find("body");
+            mainCamera = GameObject.FindWithTag("MainCamera").transform;
+            folowMe.IHaveATarget = true;
+        }
+
         if (player == null)
         {
             Debug.LogError("Player object is not assigned!");
@@ -69,14 +83,20 @@ public class Camera : MonoBehaviour
         Vector3 startPosition = anchorPosition - (rotation * Vector3.forward * distance) + Vector3.up * height;
 
         // Set the camera's position and rotation
-        transform.position = startPosition;
-        transform.rotation = Quaternion.LookRotation((player.position + Vector3.up * height * 0.5f) - transform.position);
+        mainCamera.position = startPosition;
 
         currentDistance = distance; // Initialize current distance
     }
 
     void Update()
     {
+        if (!avatar.IsMe)
+            return;
+        if (player == null || carRigidBody == null)
+        {
+            Debug.LogError("Player object is not assigned!");
+            return;
+        }
         if (Input.GetKey(KeyCode.LeftAlt))
         {
             Cursor.lockState = CursorLockMode.None;
@@ -91,7 +111,13 @@ public class Camera : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (player == null) return;
+        if (!avatar.IsMe)
+            return;
+        if (player == null || carRigidBody == null)
+        {
+            Debug.LogError("Player object is not assigned!");
+            return;
+        }
 
         // Get mouse input
         float mouseX = Input.GetAxis("Mouse X") * sensitivityX * Time.deltaTime;
@@ -128,14 +154,14 @@ public class Camera : MonoBehaviour
         // Desired position
         Vector3 desiredPosition = anchorPosition - (rotation * Vector3.forward * distance) + Vector3.up * height;
 
-        Vector3 rayDirection = (transform.position - (anchorPosition + Vector3.up * height)).normalized;
-        float rayDistance = Vector3.Distance(anchorPosition + Vector3.up * height, transform.position);
+        Vector3 rayDirection = (mainCamera.position - (anchorPosition + Vector3.up * height)).normalized;
+        float rayDistance = Vector3.Distance(anchorPosition + Vector3.up * height, mainCamera.position);
 
         RaycastHit hit;
         if (Physics.Raycast(anchorPosition + Vector3.up * height, rayDirection, out hit, rayDistance, collisionLayer))
         {
             currentDistance = Mathf.Lerp(currentDistance, hit.distance, Time.deltaTime * 10);
-            Debug.DrawLine(anchorPosition + Vector3.up * height, transform.position, Color.blue);
+            Debug.DrawLine(anchorPosition + Vector3.up * height, mainCamera.position, Color.blue);
             SetPlayerMaterialOpacity(0.3f);
         }
         else
@@ -149,10 +175,10 @@ public class Camera : MonoBehaviour
         float smoothFollowSpeed = Mathf.Lerp(minFollowSpeed, maxFollowSpeed, speedFactor);
 
         // Smoothly move camera to desired position
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * smoothFollowSpeed);
+        mainCamera.position = Vector3.Lerp(mainCamera.position, desiredPosition, Time.deltaTime * smoothFollowSpeed);
 
-        Quaternion lookAtRotation = Quaternion.LookRotation((player.position + Vector3.up * height * 0.5f) - transform.position);
-        transform.rotation = Quaternion.Lerp(transform.rotation, lookAtRotation, Time.deltaTime * rotationSpeed);
+        Quaternion lookAtRotation = Quaternion.LookRotation((player.position + Vector3.up * height * 0.5f) - mainCamera.position);
+        mainCamera.rotation = Quaternion.Lerp(mainCamera.rotation, lookAtRotation, Time.deltaTime * rotationSpeed);
     }
 
     // Function to adjust the player's material opacity
@@ -215,10 +241,10 @@ public class Camera : MonoBehaviour
         }
     }
 
-    private void OnDrawGizmos()
-    {
-        // Visualize CheckSphere in the editor
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 0.3f);
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    // Visualize CheckSphere in the editor
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawWireSphere(mainCamera.position, 0.3f);
+    //}
 }

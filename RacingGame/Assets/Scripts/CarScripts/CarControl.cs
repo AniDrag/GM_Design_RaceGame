@@ -1,6 +1,7 @@
+using Alteruna;
 using UnityEngine;
 
-public class CarControl : MonoBehaviour
+public class CarControl : CommunicationBridge
 {
     [Header("Car Properties")]
     public float motorTorque = 2000f;
@@ -13,11 +14,20 @@ public class CarControl : MonoBehaviour
     private WheelControl[] wheels;
     private Rigidbody rigidBody;
 
+    private Alteruna.Avatar avatar;
     // Start is called before the first frame update
     void Start()
     {
-        rigidBody = GetComponent<Rigidbody>();
+        avatar = GetComponent<Alteruna.Avatar>();
+        if (!avatar.IsMe)
+            return;
 
+        rigidBody = GetComponent<Rigidbody>();
+        //if (!Camera.IHaveARigidBody)
+        //{
+        //    GameObject.FindWithTag("MainCamera").GetComponent<Camera>().carRigidBody = rigidBody;
+        //    Camera.IHaveARigidBody = true;
+        //}
         // Adjust center of mass to improve stability and prevent rolling
         Vector3 centerOfMass = rigidBody.centerOfMass;
         centerOfMass.y += centreOfGravityOffset;
@@ -30,6 +40,9 @@ public class CarControl : MonoBehaviour
     // FixedUpdate is called at a fixed time interval 
     void FixedUpdate()
     {
+
+        if (!avatar.IsMe)
+            return;
         // Get player input for acceleration and steering
         float vInput = Input.GetAxis("Vertical"); // Forward/backward input
         float hInput = Input.GetAxis("Horizontal"); // Steering input
