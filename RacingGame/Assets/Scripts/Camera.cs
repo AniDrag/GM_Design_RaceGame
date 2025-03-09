@@ -56,13 +56,11 @@ public class Camera : MonoBehaviour
         avatar = GetComponent<Alteruna.Avatar>();
         if (!avatar.IsMe)
             return;
-        if (!folowMe.IHaveATarget)
-        {
-            carRigidBody = GetComponent<Rigidbody>();
-            player = gameObject.transform.Find("body");
-            mainCamera = GameObject.FindWithTag("MainCamera").transform;
-            folowMe.IHaveATarget = true;
-        }
+
+        carRigidBody = GetComponent<Rigidbody>();
+        player = gameObject.transform.Find("body");
+        mainCamera = GameObject.FindWithTag("MainCamera").transform;
+
 
         if (player == null)
         {
