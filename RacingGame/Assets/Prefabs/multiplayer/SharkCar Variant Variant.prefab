@@ -880,10 +880,13 @@ MonoBehaviour:
   Multiplayer: {fileID: 0}
   motorTorque: 2000
   brakeTorque: 2000
+  passiveSlowDown: 500
   maxSpeed: 20
   steeringRange: 30
   steeringRangeAtMaxSpeed: 10
   centreOfGravityOffset: -1
+  nitroBoost: 5
+  boostMaxSpeed: 40
 --- !u!114 &7694118504227601135
 MonoBehaviour:
   m_ObjectHideFlags: 0
