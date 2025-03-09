@@ -6,13 +6,15 @@ public class Camera : MonoBehaviour
     [SerializeField]
     private Transform player;  // Reference to the player to follow
 
+    public Rigidbody carRigidBody;
+
     [Header("Camera Settings")]
     [SerializeField]
     private float distance = 5f;  // Distance from the player
     [SerializeField]
     private float height = 2f;    // Height above the player
     [SerializeField]
-    private float rotationSpeed = 5f;  // Speed of camera rotation with mouse input
+    private float rotationSpeed = 50;  // Speed of camera rotation with mouse input
 
     [Header("Mouse Sensitivity")]
     [SerializeField]
@@ -25,15 +27,26 @@ public class Camera : MonoBehaviour
     private float minYAngle = -20f;  // Minimum vertical angle
     [SerializeField]
     private float maxYAngle = 60f;   // Maximum vertical angle
+    [SerializeField]
+    private float minXAngle = -60f;
+    [SerializeField]
+    private float maxXAngle = 60f;
 
     [SerializeField]
-    private float followSpeed = 4f;
+    private float minFollowSpeed = .1f;
+    [SerializeField]
+    private float maxFollowSpeed = 5f;
+    [SerializeField]
+    private float maxCarSpeed;
     [SerializeField]
     private LayerMask collisionLayer; // LayerMask for objects that block the camera !USE IF NEEDED!
 
     private float currentDistance;
     private float currentX = 0f;  // Current horizontal rotation
     private float currentY = 0f;  // Current vertical rotation
+
+    private Vector3 lastKnownForward;
+
 
     void Start()
     {
@@ -42,6 +55,8 @@ public class Camera : MonoBehaviour
             Debug.LogError("Player object is not assigned!");
             return;
         }
+
+        lastKnownForward = Vector3.forward;
 
         // Ensure the camera starts behind the player
         currentY = 10f; // Adjust this value for the desired vertical angle
@@ -82,17 +97,32 @@ public class Camera : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * sensitivityX * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * sensetivityY * Time.deltaTime;
 
-        float totalMouseX = mouseX;
-        float totalMouseY = mouseY;
-
         if (Cursor.lockState == CursorLockMode.Locked)
         {
-            currentX += totalMouseX;
-            currentY -= totalMouseY;
+            currentX += mouseX;
+            currentY -= mouseY;
         }
 
         currentY = Mathf.Clamp(currentY, minYAngle, maxYAngle);
-        Quaternion rotation = Quaternion.Euler(currentY, currentX, 0);
+        currentX = Mathf.Clamp(currentX, minXAngle, maxXAngle);
+
+        Vector3 carVelocity = carRigidBody.linearVelocity;
+        float carSpeed = carVelocity.magnitude; // Get car speed
+
+        // If speed is above a small threshold, update forward direction
+        if (carSpeed > 0.5f) // 0.5f prevents jitter when stopped
+        {
+            lastKnownForward = carVelocity.normalized;
+        }
+
+        // Use last known direction if car is too slow
+        Vector3 carForward = lastKnownForward;
+
+        // Get the correct Y-rotation from the movement direction
+        float carYRotation = Mathf.Atan2(carForward.x, carForward.z) * Mathf.Rad2Deg;
+
+        // Apply rotation with mouse input
+        Quaternion rotation = Quaternion.Euler(currentY, carYRotation + currentX, 0);
         Vector3 anchorPosition = player.position;
 
         // Desired position
@@ -106,18 +136,20 @@ public class Camera : MonoBehaviour
         {
             currentDistance = Mathf.Lerp(currentDistance, hit.distance, Time.deltaTime * 10);
             Debug.DrawLine(anchorPosition + Vector3.up * height, transform.position, Color.blue);
-            SetPlayerMaterialOpacity(0.3f); // Reduce player opacity
+            SetPlayerMaterialOpacity(0.3f);
         }
         else
         {
-            // Restore camera distance and opacity
             currentDistance = Mathf.Lerp(currentDistance, distance, Time.deltaTime * 10);
-            SetPlayerMaterialOpacity(1f); // Restore full opacity
+            SetPlayerMaterialOpacity(1f);
         }
 
-        // Update camera position based on current distance
-        desiredPosition = anchorPosition - (rotation * Vector3.forward * currentDistance) + Vector3.up * height;
-        transform.position = desiredPosition;
+        // Calculate follow speed based on car speed
+        float speedFactor = Mathf.Clamp01(carRigidBody.linearVelocity.magnitude / maxCarSpeed);
+        float smoothFollowSpeed = Mathf.Lerp(minFollowSpeed, maxFollowSpeed, speedFactor);
+
+        // Smoothly move camera to desired position
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime * smoothFollowSpeed);
 
         Quaternion lookAtRotation = Quaternion.LookRotation((player.position + Vector3.up * height * 0.5f) - transform.position);
         transform.rotation = Quaternion.Lerp(transform.rotation, lookAtRotation, Time.deltaTime * rotationSpeed);
@@ -136,7 +168,7 @@ public class Camera : MonoBehaviour
                     if (mat.HasProperty("_Color")) // Ensure the material has a _Color property
                     {
                         Color color = mat.color;
-                        color.a = Mathf.Lerp(color.a, targetOpacity, Time.deltaTime * followSpeed);
+                        color.a = Mathf.Lerp(color.a, targetOpacity, Time.deltaTime);
                         mat.color = color;
 
                         if (targetOpacity < 1) // Enable transparency mode
