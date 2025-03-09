@@ -107,12 +107,6 @@ public class Camera : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
-    }
-
-    void FixedUpdate()
-    {
-        if (!avatar.IsMe)
-            return;
         if (player == null || carRigidBody == null)
         {
             Debug.LogError("Player object is not assigned!");
