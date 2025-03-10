@@ -29,6 +29,6 @@ public class Speedometert : MonoBehaviour
         // 3.6 is the conversion rate for KM/h
         speed = car.linearVelocity.magnitude * 3.5f;
         speedLable.text = (int)speed + "km/h";
-        arrow.localEulerAngles = new Vector3(0, 0, Mathf.Lerp(arrowMaxAngle, arrowMaxAngle,speed /maxSpeed));
+        arrow.localEulerAngles = new Vector3(0, 0, Mathf.Lerp(arrowMinAngle, arrowMaxAngle,speed /maxSpeed));
     }
 }

@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class Camera : MonoBehaviour
 {
+
+    public static bool Multiplayer = false;
     [Header("References")]
     [SerializeField]
     private Transform player;  // Reference to the player to follow
@@ -53,9 +55,13 @@ public class Camera : MonoBehaviour
 
     void Start()
     {
-        avatar = GetComponent<Alteruna.Avatar>();
-        if (!avatar.IsMe)
-            return;
+        if (Multiplayer)
+        {
+            avatar = GetComponent<Alteruna.Avatar>();
+            if (!avatar.IsMe)
+                return;
+
+        }
 
         carRigidBody = GetComponent<Rigidbody>();
         player = gameObject.transform.Find("body");
@@ -88,8 +94,12 @@ public class Camera : MonoBehaviour
 
     void Update()
     {
-        if (!avatar.IsMe)
-            return;
+        if (Multiplayer)
+        {
+            if (!avatar.IsMe)
+                return;
+        }
+
         if (player == null || carRigidBody == null)
         {
             Debug.LogError("Player object is not assigned!");
@@ -109,8 +119,11 @@ public class Camera : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!avatar.IsMe)
-            return;
+        if (Multiplayer)
+        {
+            if (!avatar.IsMe)
+                return;
+        }
         if (player == null || carRigidBody == null)
         {
             Debug.LogError("Player object is not assigned!");

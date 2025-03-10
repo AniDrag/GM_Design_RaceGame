@@ -24,10 +24,12 @@ public class CarControl : CommunicationBridge
     // Start is called before the first frame update
     void Start()
     {
-        avatar = GetComponent<Alteruna.Avatar>();
-        if (!avatar.IsMe)
-            return;
-
+        if (Camera.Multiplayer)
+        {
+            avatar = GetComponent<Alteruna.Avatar>();
+            if (!avatar.IsMe)
+                return;
+        }
         rigidBody = GetComponent<Rigidbody>();
         //if (!Camera.IHaveARigidBody)
         //{
@@ -49,6 +51,11 @@ public class CarControl : CommunicationBridge
     // FixedUpdate is called at a fixed time interval 
     void FixedUpdate()
     {
+        if (Camera.Multiplayer)
+        {
+            if (!avatar.IsMe)
+                return;
+        }
         float boost = 1;
         currentMaxSpeed = maxSpeed;
         if (holdingShift)
@@ -57,8 +64,7 @@ public class CarControl : CommunicationBridge
             currentMaxSpeed = boostMaxSpeed;
         }
 
-        if (!avatar.IsMe)
-            return;
+
         // Get player input for acceleration and steering
         float vInput = Input.GetAxis("Vertical"); // Forward/backward input
         float hInput = Input.GetAxis("Horizontal"); // Steering input
