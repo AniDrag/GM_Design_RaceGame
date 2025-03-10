@@ -2,21 +2,22 @@ using Alteruna;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class MeColor : CommunicationBridge
+public class MeColor : MonoBehaviour
 {
-    public Material material;
-    public override void Possessed(bool isPossessor, User user)
-    {
-        enabled = isPossessor;
+    //private Alteruna.Avatar avatar;
 
-        if (isPossessor)
-            material.color = Color.green;
-        else
-            material.color = Color.red;
-    }
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-    }
+    //// Start is called once before the first execution of Update after the MonoBehaviour is created
+    //void Start()
+    //{
+    //    if (Camera.Multiplayer)
+    //    {
+    //        avatar = GetComponent<Alteruna.Avatar>();
+    //        if (avatar.IsMe)
+    //            gameObject.SetActive(false);
+
+    //    }
+    //    else
+    //        gameObject.SetActive(false);
+    //}
 
 }

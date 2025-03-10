@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class Camera : MonoBehaviour
 {
-
+    public GameObject mapColor;
     public static bool Multiplayer = false;
     [Header("References")]
     [SerializeField]
@@ -62,7 +62,7 @@ public class Camera : MonoBehaviour
                 return;
 
         }
-
+        mapColor.SetActive(false);
         carRigidBody = GetComponent<Rigidbody>();
         player = gameObject.transform.Find("body");
         mainCamera = GameObject.FindWithTag("MainCamera").transform;
